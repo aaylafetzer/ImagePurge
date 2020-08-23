@@ -1,0 +1,9 @@
+name: ImagePurge
+version: "1.0"
+author: Aayla Fetzer
+about: Removes the exif data from image files
+args:
+  - PATH:
+      index: 1
+      help: Path to remove the exif data from. Only single files are supported.
+      required: true

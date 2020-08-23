@@ -1,71 +1,38 @@
+#[macro_use]
+extern crate clap;
+
 use std::fs::{self, DirEntry, File};
-use std::path::Path;
-use exif::{Field, In, Tag, Value};
-use exif::experimental::Writer;
-use std::collections::HashMap;
+use std::io::BufReader;
+use image;
+use clap::{Arg, App};
 
 fn scramble_file(path: &str) -> std::io::Result<()> {
-    println!("Scrambling exif data for {}", path);
+    println!("Removing exif data for {}", path);
 
-    // Store metadata to write to image as a HashMap to avoid creating a new variable for each one
-    let mut image_data: Vec<Field> = Vec::new();
-    image_data.push(Field { tag: Tag::ImageDescription, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"Your mom gay".to_vec()])
-    });
-    image_data.push(Field { tag: Tag::CameraOwnerName, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"Your future boyfriend".to_vec()])
-    });
-    image_data.push(Field { tag: Tag::GPSLatitude, ifd_num: In::PRIMARY,
-        value: Value::Float(vec![37.2431].to_vec())
-    });
-    image_data.push(Field { tag: Tag::GPSLongitude, ifd_num: In::PRIMARY,
-        value: Value::Float(vec![115.792999].to_vec())
-    });
-    image_data.push(Field {tag: Tag::Artist, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"The International Proletariat".to_vec()])
-    });
-    image_data.push(Field {tag: Tag::Copyright, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"Hippity Hoppity Abolish Private Property".to_vec()])
-    });
-    image_data.push(Field {tag: Tag::Make, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"Deez".to_vec()])
-    });
-    image_data.push(Field {tag: Tag::Model, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"Nuts".to_vec()])
-    });
-    image_data.push(Field {tag: Tag::Software, ifd_num: In::PRIMARY,
-        value: Value::Ascii(vec![b"".to_vec()])
-    });
+    // Read image data
+    let mut im = image::open(path).unwrap().flipv().fliph();
     // Create the new file
-    let mut writer = Writer::new();
     let mut out_file = File::create(path).unwrap();
+    // Write image data
+    im.write_to(&mut out_file, image::ImageFormat::Jpeg);
 
-    // Push the custom metadata to writer
-    for i in image_data.iter() {
-        writer.push_field(i);
+    Ok(())
+}
+
+fn main() -> std::io::Result<()>{
+    let args = load_yaml!("arguments.yaml");
+    let matches = App::from_yaml(args).get_matches();
+
+    // Validate input
+    assert!(matches.is_present("PATH"));
+    let path = matches.value_of("PATH").unwrap();
+    let metadata = fs::metadata(path);
+    assert!(fs::metadata(path).is_ok());
+    assert!(fs::metadata(path).unwrap().is_file());
+
+    // Remove exif data
+    match scramble_file(path) {
+        Ok(_0) => Ok(()),
+        Err(e) => panic!("Error: {}", e),
     }
-    // Write exif to file
-    writer.write(&mut out_file, false);
-    Ok(())
-}
-
-fn check_path(path: &str) -> std::io::Result<()> {
-    let meta = fs::metadata(path);
-    match meta {  // Test if path actually exists
-        Ok(meta) => {
-            if meta.is_dir() {
-                println!("Directory Input");
-            } else if meta.is_file() {
-                scramble_file(path);
-            } else {
-                panic!("Error: path is not a file or a directory!")
-            }
-        }
-        Err(e) => panic!("Error: {}", e)  // The path does not exist
-    };
-    Ok(())
-}
-
-fn main() {
-    check_path("/home/aayla/Pictures/photo.jpg");
 }
