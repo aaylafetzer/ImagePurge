@@ -1,22 +1,22 @@
 #[macro_use]
 extern crate clap;
 
-use std::fs::{self, DirEntry, File};
-use std::io::BufReader;
+use std::fs::{self, File};
 use image;
-use clap::{Arg, App};
+use clap::App;
 
 fn scramble_file(path: &str) -> std::io::Result<()> {
     println!("Removing exif data for {}", path);
 
     // Read image data
-    let mut im = image::open(path).unwrap().flipv().fliph();
+    let im = image::open(path).unwrap().flipv().fliph();
     // Create the new file
     let mut out_file = File::create(path).unwrap();
     // Write image data
-    im.write_to(&mut out_file, image::ImageFormat::Jpeg);
-
-    Ok(())
+    match im.write_to(&mut out_file, image::ImageFormat::Jpeg) {
+        Ok(_) => Ok(()),
+        Err(e) => panic!("Error: {}", e)
+    }
 }
 
 fn main() -> std::io::Result<()>{
@@ -26,7 +26,6 @@ fn main() -> std::io::Result<()>{
     // Validate input
     assert!(matches.is_present("PATH"));
     let path = matches.value_of("PATH").unwrap();
-    let metadata = fs::metadata(path);
     assert!(fs::metadata(path).is_ok());
     assert!(fs::metadata(path).unwrap().is_file());
 
