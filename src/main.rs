@@ -10,10 +10,12 @@ fn scramble_file(path: &str) -> std::io::Result<()> {
 
     // Read image data
     let im = image::open(path).unwrap().flipv().fliph();
+    let format = image::ImageFormat::from_path(path).expect("Error reading image format");
+
     // Create the new file
     let mut out_file = File::create(path).unwrap();
     // Write image data
-    match im.write_to(&mut out_file, image::ImageFormat::Jpeg) {
+    match im.write_to(&mut out_file, format) {
         Ok(_) => Ok(()),
         Err(e) => panic!("Error: {}", e)
     }
