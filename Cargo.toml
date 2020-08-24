@@ -10,3 +10,5 @@ edition = "2018"
 clap = { version = "*", features = ["yaml"] }
 kamadak-exif = "*"
 image = "*"
+imageproc = "*"
+rustface = "*"

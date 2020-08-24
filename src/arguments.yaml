@@ -3,7 +3,12 @@ version: "1.0"
 author: Aayla Fetzer
 about: Removes the exif data from image files
 args:
+  - hide_faces:
+      short: f
+      required: false
+      help: Draw opaque rectangles over faces discovered by Funnel-Structured Cascade
   - PATH:
       index: 1
-      help: Path to remove the exif data from. Only single files are supported.
+      help: File path or glob pattern to remove exif data from
       required: true
+      multiple: true
